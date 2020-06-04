@@ -87,3 +87,35 @@ int gma_header_parse(struct gma_header *hdr, const void *buf, size_t count){
 		return -1;
 	}
 }
+
+static int _gma_iter(struct gma_iter *iter, struct gma_entry *e){
+	//load file number, check if we hit file 0 (end of filenames)
+	if(bufcpy(&iter->it, iter->end, &e->num, 4)) return -ENODATA;
+	e->num = le32toh(e->num);
+
+	if(e->num == 0) return 0;
+	//past this point, there is more data
+
+	//load file name
+	e->name = bufstr(&iter->it, iter->end);
+	if(e->name == NULL) return -ENODATA;
+	if(skip_null(&iter->it, iter->end)) return -ENODATA;
+
+	//load file size and crc
+	if(bufcpy(&iter->it, iter->end, &e->size, 8)) return -ENODATA;
+	if(bufcpy(&iter->it, iter->end, &e->crc, 4)) return -ENODATA;
+
+	e->offset = iter->offset;
+	iter->offset += e->size;
+
+	return 1;
+}
+
+int gma_iter(struct gma_iter *iter, struct gma_entry *e){
+	const int ret = _gma_iter(iter, e);
+	if(ret < 0){
+		errno = -ret;
+		return -1;
+	}
+	return ret;
+}
