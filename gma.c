@@ -103,7 +103,9 @@ static int _gma_iter(struct gma_iter *iter, struct gma_entry *e){
 
 	//load file size and crc
 	if(bufcpy(&iter->it, iter->end, &e->size, 8)) return -ENODATA;
+	e->size = le64toh(e->size);
 	if(bufcpy(&iter->it, iter->end, &e->crc, 4)) return -ENODATA;
+	e->crc = le32toh(e->crc);
 
 	e->offset = iter->offset;
 	iter->offset += e->size;
