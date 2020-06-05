@@ -1,6 +1,7 @@
 #pragma once
 #include <stdint.h>
 #include <stddef.h>
+#include <string.h>
 
 #define GMA_MAX_VERSION	3
 
@@ -45,6 +46,25 @@ inline size_t gma_header_get_payload_size(const struct gma_header *hdr,
 
 	return sz - hdr->length;
 }
+
+//for the header writing function, reckons how many bytes it will need
+inline size_t gma_header_get_buffer_size(const struct gma_header *hdr){
+	return
+		sizeof(hdr->ident)	+
+		sizeof(hdr->version)	+
+		sizeof(hdr->steamid)	+
+		sizeof(hdr->timestamp)	+
+		strlen(hdr->name)	+ 1 +
+		strlen(hdr->desc)	+ 1 +
+		strlen(hdr->author)	+ 1 +
+		sizeof(hdr->addon_version);
+}
+
+void *gma_header_write(const struct gma_header *, void *);
+/* writes a header to buf
+ * returns 1 past the end of the header
+ * never fails, can only segfault if you pass it a too short buffer
+*/
 
 struct gma_entry {
 	const char *name;
@@ -100,3 +120,13 @@ inline const void *gma_iter_get_file(
 }
 // same case as gma_iter_get_base
 // returns a pointer to the file that e references
+
+inline size_t gma_entry_get_buffer_size(struct gma_entry *e){
+	return
+		strlen(e->name) + 1 +
+		sizeof(e->size) +
+		sizeof(e->crc)  +
+		sizeof(e->num);
+}
+
+void *gma_entry_write(const struct gma_entry *, void *);
