@@ -49,7 +49,7 @@ inline size_t gma_header_get_payload_size(const struct gma_header *hdr,
 
 //for the header writing function, reckons how many bytes it will need
 inline size_t gma_header_get_buffer_size(const struct gma_header *hdr){
-	return
+	size_t sz =
 		sizeof(hdr->ident)	+
 		sizeof(hdr->version)	+
 		sizeof(hdr->steamid)	+
@@ -58,6 +58,8 @@ inline size_t gma_header_get_buffer_size(const struct gma_header *hdr){
 		strlen(hdr->desc)	+ 1 +
 		strlen(hdr->author)	+ 1 +
 		sizeof(hdr->addon_version);
+	if(hdr->version >= 1) sz += strlen(hdr->content) + 1;
+	return sz;
 }
 
 void *gma_header_write(const struct gma_header *, void *);
